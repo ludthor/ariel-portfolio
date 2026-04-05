@@ -1,0 +1,22 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+*.swp
+*.swo
+*~
+
+# AI/Copilot skill files
+.claude/
+.github/prompts/
+
+# Playwright MCP debug artifacts
+.playwright-mcp/
+
+# Development screenshots
+*.png
+
+# Documents (CV source files, not part of the site)
+documents/
