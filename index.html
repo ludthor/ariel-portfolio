@@ -3,522 +3,434 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ariel Ortiz Beltrán, Ph.D.</title>
-  <meta name="description" content="Postdoctoral Researcher in Institutional Analytics at Universitat Pompeu Fabra. Bridging Learning Design, Learning Analytics, and human-centered technology.">
+  <title>Ariel Ortiz Beltrán — Researcher, Engineer &amp; Educator</title>
+  <meta name="description" content="Researcher in institutional analytics and learning design, with experience in data architecture, machine learning, and higher education.">
+  <meta name="theme-color" content="#F5F7F1">
   <meta property="og:title" content="Ariel Ortiz Beltrán — Portfolio">
-  <meta property="og:description" content="Data con alma.">
+  <meta property="og:description" content="Leer los datos. Cuidar lo humano.">
   <meta property="og:type" content="website">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&amp;family=Space+Grotesk:wght@400;500;600&amp;family=Inter:wght@400;500&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin></script>
 </head>
 <body>
   <a href="#main" class="skip-link">Skip to content</a>
-  <div id="root"></div>
 
-  <script type="text/babel" data-presets="react">
+  <header class="site-header">
+    <a href="#hero" class="wordmark" aria-label="Ariel Ortiz Beltrán, home">
+      <span class="wordmark-name">Ariel Ortiz Beltrán</span>
+      <span class="wordmark-mark" aria-hidden="true">AOB</span>
+    </a>
 
-/* ─── AlifeCanvas ───────────────────────────────────────── */
-const AlifeCanvas = () => {
-  const ref = React.useRef(null);
-  const [opacity, setOpacity] = React.useState(0.18);
-  const [simName, setSimName] = React.useState('');
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="main-nav">
+      <span>Menu</span>
+      <span class="nav-toggle-lines" aria-hidden="true"></span>
+    </button>
 
-  React.useEffect(() => {
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduced) return;
-    const c = ref.current;
-    if (!c) return;
-    const ctx = c.getContext('2d');
-    const resize = () => { c.width = window.innerWidth; c.height = window.innerHeight; };
-    resize();
-    window.addEventListener('resize', resize);
-
-    const sims = ['boids', 'reaction-diffusion', 'game-of-life'];
-    const names = { 'boids': 'boids flocking', 'reaction-diffusion': 'reaction-diffusion', 'game-of-life': 'game of life' };
-    const choice = sims[Math.floor(Math.random() * sims.length)];
-    setSimName(names[choice]);
-
-    let raf;
-
-    if (choice === 'boids') {
-      const N = 80;
-      const agents = Array.from({ length: N }, () => ({
-        x: Math.random() * c.width, y: Math.random() * c.height,
-        vx: (Math.random() - 0.5) * 1.2, vy: (Math.random() - 0.5) * 1.2
-      }));
-      const step = () => {
-        ctx.fillStyle = 'rgba(248,250,247,0.08)';
-        ctx.fillRect(0, 0, c.width, c.height);
-        for (const a of agents) {
-          let ax = 0, ay = 0, cx = 0, cy = 0, sx = 0, sy = 0, n = 0;
-          for (const b of agents) {
-            if (b === a) continue;
-            const dx = b.x - a.x, dy = b.y - a.y, d2 = dx * dx + dy * dy;
-            if (d2 < 3000) { ax += b.vx; ay += b.vy; cx += b.x; cy += b.y; n++; if (d2 < 500) { sx -= dx; sy -= dy; } }
-          }
-          if (n) {
-            a.vx += (ax / n - a.vx) * 0.04; a.vy += (ay / n - a.vy) * 0.04;
-            a.vx += (cx / n - a.x) * 0.0008; a.vy += (cy / n - a.y) * 0.0008;
-            a.vx += sx * 0.02; a.vy += sy * 0.02;
-          }
-          const s = Math.hypot(a.vx, a.vy);
-          if (s > 1.8) { a.vx *= 1.8 / s; a.vy *= 1.8 / s; }
-          a.x += a.vx; a.y += a.vy;
-          if (a.x < 0) a.x += c.width; if (a.x > c.width) a.x -= c.width;
-          if (a.y < 0) a.y += c.height; if (a.y > c.height) a.y -= c.height;
-          ctx.fillStyle = '#2D8A4E';
-          ctx.beginPath(); ctx.arc(a.x, a.y, 1.8, 0, Math.PI * 2); ctx.fill();
-        }
-        raf = requestAnimationFrame(step);
-      };
-      step();
-
-    } else if (choice === 'reaction-diffusion') {
-      const W = Math.floor(c.width / 4), H = Math.floor(c.height / 4);
-      const size = W * H;
-      let a = new Float32Array(size).fill(1);
-      let b = new Float32Array(size);
-      let na = new Float32Array(size);
-      let nb = new Float32Array(size);
-      for (let i = Math.floor(H/2)-10; i < Math.floor(H/2)+10; i++)
-        for (let j = Math.floor(W/2)-10; j < Math.floor(W/2)+10; j++)
-          b[i * W + j] = 1;
-      const dA = 1.0, dB = 0.5, f = 0.055, k = 0.062;
-      const lap = (arr, i, j) => {
-        const up = ((i - 1 + H) % H) * W + j;
-        const dn = ((i + 1) % H) * W + j;
-        const lt = i * W + (j - 1 + W) % W;
-        const rt = i * W + (j + 1) % W;
-        return arr[up] + arr[dn] + arr[lt] + arr[rt] - 4 * arr[i * W + j];
-      };
-      const step = () => {
-        for (let i = 0; i < H; i++) for (let j = 0; j < W; j++) {
-          const idx = i * W + j;
-          const av = a[idx], bv = b[idx], abb = av * bv * bv;
-          na[idx] = Math.max(0, Math.min(1, av + dA * lap(a,i,j) - abb + f * (1 - av)));
-          nb[idx] = Math.max(0, Math.min(1, bv + dB * lap(b,i,j) + abb - (k + f) * bv));
-        }
-        [a, na] = [na, a]; [b, nb] = [nb, b];
-        ctx.clearRect(0, 0, c.width, c.height);
-        const img = ctx.createImageData(W, H);
-        for (let i = 0; i < size; i++) {
-          const t = b[i]; // 0 = background, 1 = chemical B pattern
-          img.data[i*4]   = Math.floor(45  + (1 - t) * 203);  // R: 45→248
-          img.data[i*4+1] = Math.floor(138 + (1 - t) * 112);  // G: 138→250
-          img.data[i*4+2] = Math.floor(78  + (1 - t) * 169);  // B: 78→247
-          img.data[i*4+3] = Math.floor(220 * t + 8);           // alpha: transparent bg, visible pattern
-        }
-        const tmp = document.createElement('canvas');
-        tmp.width = W; tmp.height = H;
-        tmp.getContext('2d').putImageData(img, 0, 0);
-        ctx.drawImage(tmp, 0, 0, c.width, c.height);
-        raf = requestAnimationFrame(step);
-      };
-      step();
-
-    } else {
-      const SCALE = 6;
-      const cols = Math.floor(c.width / SCALE), rows = Math.floor(c.height / SCALE);
-      let grid = Array.from({ length: rows }, () => Array.from({ length: cols }, () => Math.random() > 0.7 ? 1 : 0));
-      const nextGrid = (g) => g.map((row, r) => row.map((cell, c2) => {
-        let n = 0;
-        for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
-          if (dr === 0 && dc === 0) continue;
-          n += g[(r + dr + rows) % rows][(c2 + dc + cols) % cols];
-        }
-        return (cell && (n === 2 || n === 3)) || (!cell && n === 3) ? 1 : 0;
-      }));
-      let frame = 0;
-      const step = () => {
-        if (frame % 4 === 0) {
-          ctx.clearRect(0, 0, c.width, c.height);
-          ctx.fillStyle = '#2D8A4E';
-          grid.forEach((row, r) => row.forEach((cell, c2) => {
-            if (cell) ctx.fillRect(c2 * SCALE, r * SCALE, SCALE - 1, SCALE - 1);
-          }));
-          grid = nextGrid(grid);
-        }
-        frame++;
-        raf = requestAnimationFrame(step);
-      };
-      step();
-    }
-
-    const onScroll = () => {
-      const t = Math.min(window.scrollY / window.innerHeight, 1);
-      setOpacity(0.18 - t * 0.14);
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener('resize', resize);
-      window.removeEventListener('scroll', onScroll);
-    };
-  }, []);
-
-  return (
-    <>
-      <canvas ref={ref} id="alife-bg" style={{ opacity }} aria-hidden="true" />
-      {simName && <span id="alife-label" aria-hidden="true">running: {simName}</span>}
-    </>
-  );
-};
-
-/* ─── Nav ───────────────────────────────────────────────── */
-const Nav = ({ active, onNav }) => {
-  const links = ['About', 'Research', 'Work', 'Teaching', 'Pedagogy', 'Projects', 'Contact'];
-  return (
-    <nav className="nav" role="navigation" aria-label="Main navigation">
-      {links.map(l => (
-        <a key={l} href={'#' + l.toLowerCase()}
-           className={'nav-link' + (active === l.toLowerCase() ? ' is-active' : '')}
-           onClick={(e) => { e.preventDefault(); onNav(l.toLowerCase()); }}
-        >{l}</a>
-      ))}
+    <nav id="main-nav" class="nav" aria-label="Main navigation">
+      <a href="#work" class="nav-link">Work</a>
+      <a href="#research" class="nav-link">Research</a>
+      <a href="#about" class="nav-link">About</a>
+      <a href="#teaching" class="nav-link">Teaching</a>
+      <a href="#contact" class="nav-link nav-link--contact">Contact</a>
     </nav>
-  );
-};
+  </header>
 
-/* ─── Hero ──────────────────────────────────────────────── */
-const Hero = () => (
-  <section id="hero" className="section section--hero">
-    <h1 className="hero-name">Ariel Ortiz Beltrán, Ph.D.</h1>
-    <p className="hero-tagline">Data con alma</p>
-    <p className="hero-affiliation">Postdoctoral Researcher · Universitat Pompeu Fabra</p>
-    <div className="scroll-cue" aria-hidden="true">
-      <svg width="18" height="10" viewBox="0 0 18 10" fill="none">
-        <path d="M1 1l8 8 8-8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    </div>
-  </section>
-);
-
-/* ─── About ─────────────────────────────────────────────── */
-const SkillTag = ({ children }) => <span className="skill-tag">{children}</span>;
-
-const About = () => (
-  <section id="about" className="section section--about fade-in">
-    <h2 className="section-title">About</h2>
-    <div className="section-content">
-      <p>{"I'm a Bogotanian living in Barcelona — a researcher, engineer, and educator drawn to the places where data, learning, and people meet. I hold a Ph.D. in Information and Communication Technologies from Universitat Pompeu Fabra, where I studied how the design of learning environments quietly shapes what students experience and what they carry forward."}</p>
-      <p>{"Before academia, I spent over eight years building software, data architectures, and machine learning systems across Colombia. That hybrid path — industry and research, Latin America and Europe, code and classrooms — informs everything I do. Technology, I've come to believe, is most powerful when it serves the human spirit: as a tool for understanding, for equity, and for connection."}</p>
-
-      <div className="credentials">
-        <h3 className="subsection-title">Credentials</h3>
-        <ul className="credentials-list">
-          <li>{"Ph.D. in Information and Communication Technologies — Universitat Pompeu Fabra, 2025"}</li>
-          <li>{"Deep Learning Specialization — Deeplearning.AI, 2020"}</li>
-          <li>{"Data Science for All (DS4A) — Correlation One & MinTIC Colombia, 2020."} <em>Graduated with honors, Top 5 project among 92 teams</em></li>
-          <li>{"M.A. in Multimedia Creation & Serious Games — Universitat Ramon Llull, 2015."} <em>{"Fundación Carolina meritorious scholarship"}</em></li>
-          <li>{"B.Sc. in Systems Engineering — Universidad Nacional de Colombia, 2012"}</li>
-        </ul>
+  <main id="main">
+    <section id="hero" class="hero section-shell" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow">Institutional analytics · Learning design · Human-centered technology</p>
+        <h1 id="hero-title">
+          <span class="hero-name">Ariel Ortiz Beltrán, Ph.D.</span>
+          <span class="hero-statement" lang="es">Leer los datos.<br>Cuidar lo humano.</span>
+        </h1>
+        <p class="hero-intro">I study how learning environments shape student experience, and I build data and machine-learning systems that make complex decisions easier.</p>
+        <div class="hero-actions">
+          <a href="#work" class="button button--primary">View projects</a>
+          <a href="mailto:gnulion@gmail.com" class="text-link">Email me <span aria-hidden="true">↗</span></a>
+        </div>
+        <p class="hero-affiliation">Postdoctoral Researcher · Universitat Pompeu Fabra · Barcelona</p>
       </div>
 
-      <div className="skills-block">
-        <div className="skills-group">
-          <h3 className="skills-label">Technical</h3>
-          <div className="skills-tags">
-            {['Data Science','Machine Learning','Python','SQL','Cloud (AWS, Azure)','ETL & Data Pipelines','Visualization (Tableau, Power BI)','Software Engineering','DevOps','Databases'].map(s => <SkillTag key={s}>{s}</SkillTag>)}
-          </div>
-        </div>
-        <div className="skills-group">
-          <h3 className="skills-label">Soft Skills</h3>
-          <div className="skills-tags">
-            {['Gamification Design','Teaching','Research','UX Evaluation','Planning','Communication'].map(s => <SkillTag key={s}>{s}</SkillTag>)}
-          </div>
-        </div>
-        <div className="skills-group">
-          <h3 className="skills-label">Languages</h3>
-          <div className="skills-tags">
-            {['Spanish (native)','English (C1 IELTS)','Catalan (B1 CNLP)'].map(s => <SkillTag key={s}>{s}</SkillTag>)}
-          </div>
-        </div>
+      <div class="hero-art" aria-hidden="true">
+        <canvas id="alife-bg"></canvas>
+        <div class="hero-art-frame"></div>
+        <span id="alife-label"></span>
+        <span class="hero-art-note">Move the pointer. The system responds.</span>
       </div>
+    </section>
 
-      <div className="awards-block">
-        <h3 className="subsection-title">Awards</h3>
-        <ul className="awards-list">
-          <li><strong>1st Place</strong>{" — Ecopetrol \"Innovate 2019\" Computer Vision Challenge: automated submarine pipeline inspection using CNNs"}</li>
-          <li><strong>3rd Place</strong>{" — 44th Colombian Radiology Congress 2019, Best Research Protocol: AI-based thyroid nodule detection & classification"}</li>
-          <li><strong>Top 5 Project</strong>{" — Data Science for All (DS4A) 2020, among 92 teams nationwide"}</li>
-          <li><strong>{"Fundación Carolina Scholarship"}</strong>{" — Meritorious grant for the Multimedia Creation & Serious Games Master program, 2014"}</li>
-          <li><strong>Reloj Solar Nomination</strong>{" — Best undergraduate teacher, Universidad Autónoma de Bucaramanga, 2019"}</li>
-          <li><strong>PlaCLIK Grant</strong>{" — Gamification-based pedagogy in programming education, Universitat Pompeu Fabra, 2023–2025"}</li>
-        </ul>
+    <section class="principles" aria-label="Areas of practice">
+      <div class="section-shell principles-grid">
+        <article>
+          <span class="index">01</span>
+          <h2>Research</h2>
+          <p>Course design, student engagement, workload, and academic outcomes.</p>
+        </article>
+        <article>
+          <span class="index">02</span>
+          <h2>Build</h2>
+          <p>Data platforms, machine-learning systems, and visual tools.</p>
+        </article>
+        <article>
+          <span class="index">03</span>
+          <h2>Serve</h2>
+          <p>Teaching, community work, and technology centered on the people who use it.</p>
+        </article>
       </div>
-    </div>
-  </section>
-);
+    </section>
 
-/* ─── Research ──────────────────────────────────────────── */
-const PUBS = [
-  { y: 2025, t: "The Interplay between Learning Design and Learning Analytics Indicators in Higher Education", v: "Ph.D. Thesis — Universitat Pompeu Fabra", a: "Ortiz-Beltrán, Ariel", link: "https://hdl.handle.net/10803/695430", lt: "View thesis" },
-  { y: 2025, t: "Exploring the Complex Analytics Interplay of LMS Design, Usage, Academic Outcomes, and Perceived Workload", v: "Lecture Notes in Computer Science — Springer", a: "Ortiz-Beltrán, A., Marques, F., & Hernández-Leo, D.", link: "https://doi.org/10.1007/978-3-032-03873-9_26", lt: "DOI" },
-  { y: 2025, t: "Institutional, Academic, and Learning Analytics: A Bibliometric Study", v: "IEEE ICALT 2025", a: "Marques, F., Ortiz-Beltrán, A., Hernández-Leo, D., & Castillo, C.", link: "https://doi.org/10.1109/ICALT64023.2025.00043", lt: "DOI" },
-  { y: 2025, t: "Extracting Institutional Analytics Features from LMS Data: Towards Bridging LD Analytics and LA", v: "LASI Spain 2025 — CEUR Workshop Proceedings", a: "Ortiz-Beltrán, A. & Hernández-Leo, D.", link: "https://ceur-ws.org/Vol-4148/Paper2.pdf", lt: "Paper" },
-  { y: 2024, t: "Diseño pedagógico basado en gamificación en el aprendizaje de fundamentos básicos de programación", v: "Universitat Pompeu Fabra", a: "Santos Rodríguez, P. & Ortiz Beltrán, A.", link: "https://hdl.handle.net/10230/70405", lt: "View" },
-  { y: 2023, t: "Surviving and Thriving: How Changes in Teaching Modalities Influenced Student Satisfaction", v: "Australasian Journal of Educational Technology", a: "Ortiz Beltrán, A., Hernandez-Leo, D., & Amarasinghe, I.", link: "https://doi.org/10.14742/ajet.8958", lt: "DOI" },
-  { y: 2023, t: "Generative Pre-trained Transformers for Coding Text Data? An Analysis with Classroom Orchestration Data", v: "Lecture Notes in Computer Science — Springer", a: "Amarasinghe, I., Marques, F., Ortiz-Beltrán, A., & Hernández-Leo, D.", link: "https://doi.org/10.1007/978-3-031-42682-7_3", lt: "DOI" },
-  { y: 2020, t: "Diagnóstico y reestructuración pedagógica en la enseñanza de programación de computadores", v: "Revista Interamericana de Investigación, Educación y Pedagogía", a: "Ramírez Prada, P.C., Ortiz Beltrán, A.O., & Lobo Quintero, R.A.", link: "https://doi.org/10.15332/25005421.6000", lt: "DOI" },
-  { y: 2020, t: "Experiencias significativas de la implementación de la gamificación en los cursos de programación", v: "Revista Educación en Ingeniería", a: "Ramírez, P., Ortiz-Beltran, A., & Lobo-Quintero, R.", link: "https://doi.org/10.26507/REI.V15N29.1031", lt: "DOI" },
-  { y: 2019, t: "Teaching Principles of Programming without ICT: Design of a Board Game", v: "Interacción 2019 — ACM", a: "Espinosa C., M.A., Uribe O., N.A., Sarmiento, R.E., Casanova, P.E., & Ortiz-Beltrán, A.", link: "https://doi.org/10.1145/3335595.3335627", lt: "DOI" },
-];
-
-const Pub = ({ p }) => {
-  const [open, setOpen] = React.useState(false);
-  return (
-    <li className="pub">
-      <button className="pub-header" aria-expanded={open} onClick={() => setOpen(!open)}>
-        <span className="pub-title">{p.t}</span>
-        <span className="pub-venue">{p.v}</span>
-        <span className="pub-year">{p.y}</span>
-      </button>
-      {open && (
-        <div className="pub-details">
-          <p className="pub-authors">{p.a}</p>
-          <a href={p.link} className="pub-doi" target="_blank" rel="noopener noreferrer">{p.lt} →</a>
+    <section id="work" class="section section-shell">
+      <header class="section-heading">
+        <div>
+          <p class="section-kicker">01 / Work</p>
+          <h2>Selected projects</h2>
         </div>
-      )}
-    </li>
-  );
-};
+        <p>A selection from more than eight years in software engineering, data architecture, machine learning, and applied research.</p>
+      </header>
 
-const Research = () => (
-  <section id="research" className="section section--research fade-in">
-    <h2 className="section-title">Research</h2>
-    <div className="section-content">
-      <p className="research-intro">{"Every course leaves traces — in how it was designed, how students moved through it, and what emerged along the way. My research works with those traces at the institutional scale, bridging Learning Design and Learning Analytics to help universities see the interplay between course design, engagement, and outcomes. I also explore how large language models can help us interpret and orchestrate educational data in ways that were previously out of reach."}</p>
-      <a href="https://orcid.org/0000-0003-1522-2362" target="_blank" rel="noopener noreferrer" className="orcid-link">
-        ORCID 0000-0003-1522-2362
-      </a>
-      <ul className="publications">
-        {PUBS.map((p, i) => <Pub key={i} p={p} />)}
-      </ul>
-    </div>
-  </section>
-);
+      <div class="case-studies">
+        <article class="case-study">
+          <p class="case-study-index" aria-hidden="true">01</p>
+          <div class="case-study-heading">
+            <p class="case-study-meta">Product architecture · Grupo Bernier</p>
+            <h3>AnniQ — AutoML platform</h3>
+          </div>
+          <div class="case-study-copy">
+            <p>I designed the first version of a cloud platform that allowed non-technical teams to build machine-learning pipelines—from data ingestion to model deployment—without writing code.</p>
+            <dl class="case-study-facts">
+              <div><dt>Role</dt><dd>Architect &amp; Tech Lead</dd></div>
+              <div><dt>Focus</dt><dd>End-to-end ML workflows</dd></div>
+              <div><dt>Stack</dt><dd>Python · Cloud · AutoML</dd></div>
+            </dl>
+          </div>
+        </article>
 
-/* ─── Work ──────────────────────────────────────────────── */
-const WORK_PROJECTS = [
-  { t: "HouseEdge — Bayesian ML Engineering", d: "At HouseEdge, I developed and deployed Bayesian probabilistic models using PyMC on a fully automated AWS pipeline — covering data ingestion, model training, inference, and reporting. I designed the cloud infrastructure across SageMaker, EC2, S3, SQS, and Lambda, engineered MongoDB and Google Drive sync workflows into the AWS ecosystem, and drove cost optimization via Cost Explorer.", tags: ["PyMC","Bayesian ML","AWS SageMaker","MLOps","Python","MongoDB"] },
-  { t: "Data Scientist and ML Engineer — DataKnow", d: "At DataKnow, I designed and led data analytics and forecasting architectures on AWS and Azure — full-cycle workflows from ETL pipelines and data modeling to deployment and maintenance for cross-functional teams.", tags: ["AWS","Azure","Data Engineering","ETL","Machine Learning"] },
-  { t: "ML Engineer & Fullstack Developer — SwitchAI", d: "At SwitchAI, I worked across the stack combining fullstack development and machine learning engineering. A notable project was a real-time computer vision system for submarine pipeline anomaly detection — winning 1st place at Ecopetrol's Innovate 2019 hackathon with convolutional neural networks reading video feeds to flag structural risks.", tags: ["TensorFlow","Computer Vision","Deep Learning","Fullstack","Python"] },
-  { t: "ML Engineer & Tech Lead — Grupo Bernier", d: "At Grupo Bernier, I led two parallel tracks: architecting AnniQ, a cloud-based AutoML platform that lets non-technical users build end-to-end ML pipelines without writing code; and building machine learning models and Tableau dashboards to predict guest behavior for Movich Hotels, one of Colombia's largest hotel chains.", tags: ["AutoML","Cloud Architecture","Machine Learning","Tableau","Python","Tech Lead"] },
-];
+        <article class="case-study">
+          <p class="case-study-index" aria-hidden="true">02</p>
+          <div class="case-study-heading">
+            <p class="case-study-meta">Computer vision · Ecopetrol</p>
+            <h3>Submarine pipeline inspection</h3>
+          </div>
+          <div class="case-study-copy">
+            <p>A real-time computer-vision system using convolutional neural networks to detect anomalies in submarine pipeline video.</p>
+            <p class="outcome"><span aria-hidden="true">★</span> 1st place · Innovate 2019</p>
+          </div>
+        </article>
 
-const Work = () => (
-  <section id="work" className="section section--work fade-in">
-    <h2 className="section-title">Work</h2>
-    <div className="section-content">
-      <p className="work-intro">{"Before — and alongside — research, I spent over eight years leading data and ML projects at startups across Colombia. From designing cloud architectures to building prediction models, each role deepened my conviction that the best technical work is the kind that makes complexity disappear for the people who need answers."}</p>
-      <div className="projects">
-        {WORK_PROJECTS.map((p, i) => (
-          <article key={i} className="project">
-            <h3 className="project-title">{p.t}</h3>
-            <p className="project-desc">{p.d}</p>
-            <div className="project-tags">
-              {p.tags.map(t => <span key={t} className="tag">{t}</span>)}
+        <article class="case-study">
+          <p class="case-study-index" aria-hidden="true">03</p>
+          <div class="case-study-heading">
+            <p class="case-study-meta">Data architecture · DataKnow</p>
+            <h3>Cloud data architectures</h3>
+          </div>
+          <div class="case-study-copy">
+            <p>At DataKnow, I designed analytics and forecasting architectures on AWS and Azure, covering ETL, data modeling, deployment, and maintenance.</p>
+            <div class="tag-list" aria-label="Technologies">
+              <span>AWS</span><span>Azure</span><span>ETL</span><span>Forecasting</span>
             </div>
-          </article>
-        ))}
-      </div>
-    </div>
-  </section>
-);
-
-/* ─── Teaching & Community ──────────────────────────────── */
-const ROLES = [
-  { t: "Guest Professor", p: "ELISAVA — Master in Human Interaction and AI", d: "Sessions and workshops on Design and Prototyping of ML and Neural Networks. 2026." },
-  { t: "Instructor", p: "Universitat Pompeu Fabra", d: "Data Structures and Algorithms for ICT programs. 2021–2026." },
-  { t: "Associate Professor & Researcher", p: "Universidad Autónoma de Bucaramanga", d: "Data Structures, Algorithms Analysis, and User Experience courses. Curricula redesign for the Systems Engineering program. 2015–2019." },
-  { t: "Online Instructor", p: "Platzi", d: "Professional course on Machine Learning with Scikit-learn." },
-];
-
-const INITIATIVES = [
-  { n: "Escuela Latinoamericana de Inteligencia Artificial", d: "Free weekly sessions on AI, machine learning, and data science — an open space for anyone across Latin America curious about these fields.", l: "LinkedIn →", href: "https://www.linkedin.com/company/escuelaia" },
-  { n: "Engega't — Gamified Job Insertion", d: "Gamification designer for the municipality of Santa Perpètua de Mogoda (Catalonia), reimagining their job insertion program as a gamified experience.", l: "Press →", href: "https://www.url.edu/ca/sala-de-premsa/noticies/institucional/2016/lajuntament-de-santa-perpetua-i-la-salle-url-apliquen-la-gamificacio-un-programa-dorientacio-laboral-joves-de-16-29-anys" },
-  { n: "Locademia de Teología", d: "A space for honest, alternative theological conversation across Latin America.", l: "Visit →", href: "https://locademiadeteologia.wordpress.com/" },
-  { n: "LEA — Misión Conocimiento App", d: "Technical lead, maintainer, and contributor at Lea Comunicaciones SAS. We're building a gamified app to develop critical reading skills — grounded in ICFES and PISA competency frameworks, aimed primarily at high schoolers but open to any institution.", l: "App →", href: "https://app.misionlea.com/splash" },
-];
-
-const Teaching = () => (
-  <section id="teaching" className="section section--teaching fade-in">
-    <h2 className="section-title">Teaching &amp; Community</h2>
-    <div className="section-content">
-      <p>{"Teaching, for me, is an act of shared curiosity. I've taught across formats — university lecture halls, online platforms, open workshops — always returning to the same question: how do we make complex ideas feel approachable without losing their depth? Gamification has been a recurring thread in my answer, weaving play and challenge into subjects like data structures and algorithms."}</p>
-      <div className="teaching-roles">
-        {ROLES.map((r, i) => (
-          <div key={i} className="role">
-            <h3 className="role-title">{r.t}</h3>
-            <p className="role-place">{r.p}</p>
-            <p className="role-detail">{r.d}</p>
           </div>
-        ))}
-      </div>
-      <h3 className="subsection-title">Community Initiatives</h3>
-      <div className="community-initiatives">
-        {INITIATIVES.map((x, i) => (
-          <div key={i} className="initiative initiative--highlight">
-            <h4 className="initiative-name">{x.n}</h4>
-            <p className="initiative-detail">{x.d}</p>
-            <a href={x.href} target="_blank" rel="noopener noreferrer" className="initiative-link">{x.l}</a>
+        </article>
+
+        <article class="case-study">
+          <p class="case-study-index" aria-hidden="true">04</p>
+          <div class="case-study-heading">
+            <p class="case-study-meta">Guest analytics · Movich Hotels</p>
+            <h3>Guest analytics for Movich Hotels</h3>
           </div>
-        ))}
+          <div class="case-study-copy">
+            <p>At Grupo Bernier, I built machine-learning models and Tableau dashboards to analyze booking behavior for one of Colombia’s largest hotel chains.</p>
+          </div>
+        </article>
       </div>
-    </div>
-  </section>
-);
+    </section>
 
-/* ─── Pedagogy ──────────────────────────────────────────── */
-const PEDAGOGY = [
-  { type: "Interactive Tool", title: "ML Project Design Studio", desc: "A visual pipeline builder where students design ML projects across 8 categories — from problem framing to risk analysis — with rubric scoring and contextual feedback.", tags: ["Machine Learning","ELISAVA"], link: "https://ludthor.github.io/ml-design-studio/", linkText: "Try it →", wip: false },
-  { type: "PlaCLIK Grant", title: "Gamification in Programming Education", desc: "A gamification-based pedagogical design for introductory programming courses, funded by Universitat Pompeu Fabra (2023–2025).", tags: ["Gamification","UPF"], link: null, linkText: null, wip: false },
-  { type: "Coming Soon", title: "Course Materials & Workshops", desc: "Slides, notes, demos, and workshop guides from my courses at UPF, ELISAVA, and UNAB are being curated and will be published here.", tags: [], link: null, linkText: null, wip: true },
-];
+    <section id="research" class="section section--tinted">
+      <div class="section-shell">
+        <header class="section-heading">
+          <div>
+            <p class="section-kicker">02 / Research</p>
+            <h2>Learning design &amp; institutional analytics</h2>
+          </div>
+          <div>
+            <p>I study relationships between course design, LMS use, student workload, and academic outcomes. More recently, I have explored how large language models can support the analysis of educational data.</p>
+            <a href="https://orcid.org/0000-0003-1522-2362" target="_blank" rel="noopener noreferrer" class="text-link">ORCID 0000-0003-1522-2362 <span aria-hidden="true">↗</span></a>
+          </div>
+        </header>
 
-const Pedagogy = () => (
-  <section id="pedagogy" className="section section--pedagogy fade-in">
-    <h2 className="section-title">Pedagogical Resources</h2>
-    <div className="section-content">
-      <p className="pedagogy-intro">{"Over the years I've built slides, interactive demos, workshop guides, and course notes — materials born from the classroom but designed to travel beyond it. This section gathers the pedagogical resources I've developed for courses in data structures, algorithms, machine learning, and programming."}</p>
-      <div className="pedagogy-grid">
-        {PEDAGOGY.map((card, i) => (
-          <article key={i} className={'pedagogy-card' + (card.wip ? ' pedagogy-card--wip' : '')}>
-            <span className="pedagogy-type">{card.type}</span>
-            <h3 className="pedagogy-card-title">{card.title}</h3>
-            <p className="pedagogy-card-desc">{card.desc}</p>
-            {card.tags.length > 0 && (
-              <div className="project-tags">
-                {card.tags.map(t => <span key={t} className="tag">{t}</span>)}
-              </div>
-            )}
-            {card.link && <a href={card.link} target="_blank" rel="noopener noreferrer" className="pedagogy-link">{card.linkText}</a>}
-          </article>
-        ))}
-      </div>
-    </div>
-  </section>
-);
+        <div class="research-focus" aria-label="Current research focus">
+          <p class="research-focus-label">Current question</p>
+          <blockquote>What can institutions learn from educational data—and what can the data not tell us?</blockquote>
+          <div class="tag-list">
+            <span>Institutional Analytics</span>
+            <span>Learning Design</span>
+            <span>Learning Analytics</span>
+            <span>Large Language Models</span>
+          </div>
+        </div>
 
-/* ─── Projects ──────────────────────────────────────────── */
-const SHOWCASE = [
-  { title: "ML Design Studio", gh: "https://github.com/ludthor/ml-design-studio", desc: "Interactive educational tool for visually designing ML project pipelines. Students drag, connect, and annotate blocks across an 8-category pipeline with built-in rubric scoring and contextual feedback.", tags: ["React","TypeScript","Tailwind","Education"], demo: "https://ludthor.github.io/ml-design-studio/" },
-  { title: "SkillBoiler", gh: "https://github.com/ludthor/SkillBoiler", desc: "Build, validate, and export VS Code agent skills (SKILL.md) with a structured 5-step wizard. Includes description quality analyzer, quick-start templates, and persistent library.", tags: ["React","TypeScript","Zustand","DevTools"], demo: "https://ludthor.github.io/SkillBoiler/" },
-  { title: "Ecosistema", gh: "https://github.com/ludthor/Ecosistema", desc: "A deterministic, web-based ecosystem simulation modeling plants, herbivores, and carnivores with lifecycle, interaction, and reproduction rules. Seeded resets enable reproducible experiments.", tags: ["Java","Spring Boot","p5.js","Simulation"], demo: null },
-  { title: "WesleyBot", gh: "https://github.com/ludthor/wesleybot", desc: "An NLP experiment generating text from John Wesley's sermons corpus — exploring deep learning text generation with TensorFlow and Keras on 18th-century theological writing.", tags: ["Python","TensorFlow","NLP"], demo: null },
-];
+        <div class="publication-heading">
+          <h3>Publications</h3>
+          <p>Open an entry for authors and links.</p>
+        </div>
 
-const Projects = () => (
-  <section id="projects" className="section section--projects fade-in">
-    <h2 className="section-title">Projects</h2>
-    <div className="section-content">
-      <p className="projects-intro">Side projects are where curiosity runs free. These are some personal and research-adjacent builds — from ecosystem simulations to developer tools — hosted on GitHub.</p>
-      <div className="project-showcase">
-        {SHOWCASE.map((p, i) => (
-          <article key={i} className="showcase-card">
-            <div className="showcase-header">
-              <h3 className="showcase-title">{p.title}</h3>
-              <a href={p.gh} target="_blank" rel="noopener noreferrer" className="showcase-gh"
-                 aria-label={'View ' + p.title + ' on GitHub'}>GitHub →</a>
+        <ol class="publications">
+          <li class="pub" data-year="2025">
+            <button class="pub-header" aria-expanded="false" aria-controls="pub-1-details">
+              <span class="pub-index">01</span>
+              <span class="pub-title">The Interplay between Learning Design and Learning Analytics Indicators in Higher Education</span>
+              <span class="pub-venue">Ph.D. Thesis · Universitat Pompeu Fabra</span>
+              <span class="pub-year">2025</span>
+              <span class="pub-toggle" aria-hidden="true"></span>
+            </button>
+            <div id="pub-1-details" class="pub-details" hidden>
+              <p class="pub-authors">Ortiz-Beltrán, Ariel</p>
+              <a href="https://hdl.handle.net/10803/695430" target="_blank" rel="noopener noreferrer" class="text-link">View thesis <span aria-hidden="true">↗</span></a>
             </div>
-            <p className="showcase-desc">{p.desc}</p>
-            <div className="project-tags">
-              {p.tags.map(t => <span key={t} className="tag">{t}</span>)}
+          </li>
+
+          <li class="pub" data-year="2025">
+            <button class="pub-header" aria-expanded="false" aria-controls="pub-2-details">
+              <span class="pub-index">02</span>
+              <span class="pub-title">Exploring the Complex Analytics Interplay of LMS Design, Usage, Academic Outcomes, and Perceived Workload</span>
+              <span class="pub-venue">Lecture Notes in Computer Science · Springer</span>
+              <span class="pub-year">2025</span>
+              <span class="pub-toggle" aria-hidden="true"></span>
+            </button>
+            <div id="pub-2-details" class="pub-details" hidden>
+              <p class="pub-authors">Ortiz-Beltrán, A., Marques, F., &amp; Hernández-Leo, D.</p>
+              <a href="https://doi.org/10.1007/978-3-032-03873-9_26" target="_blank" rel="noopener noreferrer" class="text-link">DOI <span aria-hidden="true">↗</span></a>
             </div>
-            {p.demo && <a href={p.demo} target="_blank" rel="noopener noreferrer" className="showcase-demo">Live Demo →</a>}
-          </article>
-        ))}
+          </li>
+
+          <li class="pub" data-year="2025">
+            <button class="pub-header" aria-expanded="false" aria-controls="pub-3-details">
+              <span class="pub-index">03</span>
+              <span class="pub-title">Institutional, Academic, and Learning Analytics: A Bibliometric Study</span>
+              <span class="pub-venue">IEEE ICALT 2025</span>
+              <span class="pub-year">2025</span>
+              <span class="pub-toggle" aria-hidden="true"></span>
+            </button>
+            <div id="pub-3-details" class="pub-details" hidden>
+              <p class="pub-authors">Marques, F., Ortiz-Beltrán, A., Hernández-Leo, D., &amp; Castillo, C.</p>
+              <a href="https://doi.org/10.1109/ICALT64023.2025.00043" target="_blank" rel="noopener noreferrer" class="text-link">DOI <span aria-hidden="true">↗</span></a>
+            </div>
+          </li>
+
+          <li class="pub" data-year="2025">
+            <button class="pub-header" aria-expanded="false" aria-controls="pub-4-details">
+              <span class="pub-index">04</span>
+              <span class="pub-title">Extracting Institutional Analytics Features from LMS Data: Towards Bridging LD Analytics and LA</span>
+              <span class="pub-venue">LASI Spain · CEUR Workshop Proceedings</span>
+              <span class="pub-year">2025</span>
+              <span class="pub-toggle" aria-hidden="true"></span>
+            </button>
+            <div id="pub-4-details" class="pub-details" hidden>
+              <p class="pub-authors">Ortiz-Beltrán, A. &amp; Hernández-Leo, D.</p>
+              <a href="https://ceur-ws.org/Vol-4148/Paper2.pdf" target="_blank" rel="noopener noreferrer" class="text-link">Paper <span aria-hidden="true">↗</span></a>
+            </div>
+          </li>
+
+          <li class="pub" data-year="2024">
+            <button class="pub-header" aria-expanded="false" aria-controls="pub-5-details">
+              <span class="pub-index">05</span>
+              <span class="pub-title">Diseño pedagógico basado en gamificación en el aprendizaje de fundamentos básicos de programación</span>
+              <span class="pub-venue">Universitat Pompeu Fabra</span>
+              <span class="pub-year">2024</span>
+              <span class="pub-toggle" aria-hidden="true"></span>
+            </button>
+            <div id="pub-5-details" class="pub-details" hidden>
+              <p class="pub-authors">Santos Rodríguez, P. &amp; Ortiz Beltrán, A.</p>
+              <a href="https://hdl.handle.net/10230/70405" target="_blank" rel="noopener noreferrer" class="text-link">View <span aria-hidden="true">↗</span></a>
+            </div>
+          </li>
+
+          <li class="pub" data-year="2023">
+            <button class="pub-header" aria-expanded="false" aria-controls="pub-6-details">
+              <span class="pub-index">06</span>
+              <span class="pub-title">Surviving and Thriving: How Changes in Teaching Modalities Influenced Student Satisfaction</span>
+              <span class="pub-venue">Australasian Journal of Educational Technology</span>
+              <span class="pub-year">2023</span>
+              <span class="pub-toggle" aria-hidden="true"></span>
+            </button>
+            <div id="pub-6-details" class="pub-details" hidden>
+              <p class="pub-authors">Ortiz Beltrán, A., Hernandez-Leo, D., &amp; Amarasinghe, I.</p>
+              <a href="https://doi.org/10.14742/ajet.8958" target="_blank" rel="noopener noreferrer" class="text-link">DOI <span aria-hidden="true">↗</span></a>
+            </div>
+          </li>
+
+          <li class="pub" data-year="2023">
+            <button class="pub-header" aria-expanded="false" aria-controls="pub-7-details">
+              <span class="pub-index">07</span>
+              <span class="pub-title">Generative Pre-trained Transformers for Coding Text Data? An Analysis with Classroom Orchestration Data</span>
+              <span class="pub-venue">Lecture Notes in Computer Science · Springer</span>
+              <span class="pub-year">2023</span>
+              <span class="pub-toggle" aria-hidden="true"></span>
+            </button>
+            <div id="pub-7-details" class="pub-details" hidden>
+              <p class="pub-authors">Amarasinghe, I., Marques, F., Ortiz-Beltrán, A., &amp; Hernández-Leo, D.</p>
+              <a href="https://doi.org/10.1007/978-3-031-42682-7_3" target="_blank" rel="noopener noreferrer" class="text-link">DOI <span aria-hidden="true">↗</span></a>
+            </div>
+          </li>
+
+          <li class="pub" data-year="2020">
+            <button class="pub-header" aria-expanded="false" aria-controls="pub-8-details">
+              <span class="pub-index">08</span>
+              <span class="pub-title">Diagnóstico y reestructuración pedagógica en la enseñanza de programación de computadores</span>
+              <span class="pub-venue">Revista Interamericana de Investigación, Educación y Pedagogía</span>
+              <span class="pub-year">2020</span>
+              <span class="pub-toggle" aria-hidden="true"></span>
+            </button>
+            <div id="pub-8-details" class="pub-details" hidden>
+              <p class="pub-authors">Ramírez Prada, P.C., Ortiz Beltrán, A.O., &amp; Lobo Quintero, R.A.</p>
+              <a href="https://doi.org/10.15332/25005421.6000" target="_blank" rel="noopener noreferrer" class="text-link">DOI <span aria-hidden="true">↗</span></a>
+            </div>
+          </li>
+
+          <li class="pub" data-year="2020">
+            <button class="pub-header" aria-expanded="false" aria-controls="pub-9-details">
+              <span class="pub-index">09</span>
+              <span class="pub-title">Experiencias significativas de la implementación de la gamificación en los cursos de programación</span>
+              <span class="pub-venue">Revista Educación en Ingeniería</span>
+              <span class="pub-year">2020</span>
+              <span class="pub-toggle" aria-hidden="true"></span>
+            </button>
+            <div id="pub-9-details" class="pub-details" hidden>
+              <p class="pub-authors">Ramírez, P., Ortiz-Beltran, A., &amp; Lobo-Quintero, R.</p>
+              <a href="https://doi.org/10.26507/REI.V15N29.1031" target="_blank" rel="noopener noreferrer" class="text-link">DOI <span aria-hidden="true">↗</span></a>
+            </div>
+          </li>
+
+          <li class="pub" data-year="2019">
+            <button class="pub-header" aria-expanded="false" aria-controls="pub-10-details">
+              <span class="pub-index">10</span>
+              <span class="pub-title">Teaching Principles of Programming without ICT: Design of a Board Game</span>
+              <span class="pub-venue">Interacción 2019 · ACM</span>
+              <span class="pub-year">2019</span>
+              <span class="pub-toggle" aria-hidden="true"></span>
+            </button>
+            <div id="pub-10-details" class="pub-details" hidden>
+              <p class="pub-authors">Espinosa C., M.A., Uribe O., N.A., Sarmiento, R.E., Casanova, P.E., &amp; Ortiz-Beltrán, A.</p>
+              <a href="https://doi.org/10.1145/3335595.3335627" target="_blank" rel="noopener noreferrer" class="text-link">DOI <span aria-hidden="true">↗</span></a>
+            </div>
+          </li>
+        </ol>
       </div>
-    </div>
-  </section>
-);
+    </section>
 
-/* ─── Contact ───────────────────────────────────────────── */
-const CHANNELS = [
-  { label: "Email", value: "gnulion@gmail.com", href: "mailto:gnulion@gmail.com" },
-  { label: "LinkedIn", value: "in/arielortiz", href: "https://www.linkedin.com/in/arielortiz" },
-  { label: "ORCID", value: "0000-0003-1522-2362", href: "https://orcid.org/0000-0003-1522-2362" },
-];
+    <section id="about" class="section section-shell">
+      <header class="section-heading">
+        <div>
+          <p class="section-kicker">03 / About</p>
+          <h2>Background</h2>
+        </div>
+        <div class="about-intro">
+          <p>I’m from Bogotá and live in Barcelona. My work has moved between software engineering, data science, higher education, and learning design.</p>
+          <p>Eight years in industry taught me to build for real constraints and real users. Academia taught me to ask slower questions. I try to hold both habits together—and to treat technology as a form of service.</p>
+        </div>
+      </header>
 
-const Contact = () => (
-  <section id="contact" className="section section--contact fade-in">
-    <h2 className="section-title">{"Let's talk"}</h2>
-    <div className="section-content">
-      <p className="contact-intro">{"I'm always interested in conversations about learning, data, technology that serves people, or whatever else you find worth exploring. If something here resonated — or if you think we might do good work together — I'd love to hear from you."}</p>
-      <div className="contact-channels">
-        {CHANNELS.map(c => (
-          <a key={c.label} href={c.href} className="contact-channel"
-             target={c.href.startsWith('mailto') ? undefined : '_blank'} rel="noopener noreferrer">
-            <span className="channel-label">{c.label}</span>
-            <span className="channel-value">{c.value}</span>
-          </a>
-        ))}
+      <div class="about-grid">
+        <div class="timeline">
+          <h3>Formation</h3>
+          <ol>
+            <li><span>2025</span><div><strong>Ph.D. in Information and Communication Technologies</strong><p>Universitat Pompeu Fabra</p></div></li>
+            <li><span>2020</span><div><strong>Deep Learning Specialization &amp; DS4A</strong><p>Deeplearning.AI · Correlation One &amp; MinTIC Colombia</p></div></li>
+            <li><span>2015</span><div><strong>M.A. in Multimedia Creation &amp; Serious Games</strong><p>Universitat Ramon Llull · Fundación Carolina scholarship</p></div></li>
+            <li><span>2012</span><div><strong>B.Sc. in Systems Engineering</strong><p>Universidad Nacional de Colombia</p></div></li>
+          </ol>
+        </div>
+
+        <aside class="practice-card">
+          <h3>Practice</h3>
+          <div class="practice-group">
+            <p>Technical</p>
+            <div class="tag-list"><span>Data Science</span><span>Machine Learning</span><span>Python</span><span>SQL</span><span>AWS &amp; Azure</span><span>Data Pipelines</span><span>Visualization</span><span>Software Engineering</span></div>
+          </div>
+          <div class="practice-group">
+            <p>Teaching &amp; research</p>
+            <div class="tag-list"><span>Learning Design</span><span>Teaching</span><span>Research</span><span>UX Evaluation</span><span>Facilitation</span></div>
+          </div>
+          <div class="practice-group">
+            <p>Languages</p>
+            <div class="tag-list"><span>Spanish · Native</span><span>English · C1</span><span>Catalan · B1</span></div>
+          </div>
+        </aside>
       </div>
-      <p className="contact-location">Based in Barcelona · Open to presencial &amp; remote</p>
-    </div>
-  </section>
-);
 
-/* ─── Footer ────────────────────────────────────────────── */
-const SiteFooter = () => (
-  <footer className="site-footer">
-    <p>Made with curiosity and a few living algorithms.</p>
-  </footer>
-);
+      <div class="recognition">
+        <p class="section-kicker">Selected recognition</p>
+        <div class="recognition-grid">
+          <p><strong>1st Place</strong><span>Ecopetrol Innovate 2019 · Computer Vision</span></p>
+          <p><strong>Top 5 Project</strong><span>Data Science for All 2020 · 92 teams</span></p>
+          <p><strong>PlaCLIK Grant</strong><span>Gamification-based programming pedagogy</span></p>
+          <p><strong>Teaching nomination</strong><span>Reloj Solar · Universidad Autónoma de Bucaramanga</span></p>
+        </div>
+      </div>
+    </section>
 
-/* ─── App ───────────────────────────────────────────────── */
-const App = () => {
-  const [active, setActive] = React.useState('hero');
+    <section id="teaching" class="section section--dark">
+      <div class="section-shell">
+        <header class="section-heading">
+          <div>
+            <p class="section-kicker">04 / Teaching</p>
+            <h2>Teaching &amp; community</h2>
+          </div>
+          <p>I have taught in universities, online courses, and open workshops. My classes often use games and practical challenges to make algorithms and machine learning easier to enter without simplifying the subject.</p>
+        </header>
 
-  const onNav = (id) => {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    setActive(id);
-  };
+        <div class="teaching-layout">
+          <div class="roles">
+            <article><span>2026</span><div><h3>Guest Professor</h3><p>ELISAVA · Master in Human Interaction and AI</p><small>Design and prototyping of ML and neural networks</small></div></article>
+            <article><span>2021–26</span><div><h3>Instructor</h3><p>Universitat Pompeu Fabra</p><small>Data Structures and Algorithms for ICT programs</small></div></article>
+            <article><span>2015–19</span><div><h3>Associate Professor &amp; Researcher</h3><p>Universidad Autónoma de Bucaramanga</p><small>Algorithms, UX, and Systems Engineering curriculum redesign</small></div></article>
+            <article><span>Online</span><div><h3>Instructor</h3><p>Platzi</p><small>Machine Learning with Scikit-learn</small></div></article>
+          </div>
 
-  React.useEffect(() => {
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const setup = () => {
-      const fadeEls = document.querySelectorAll('.fade-in');
-      if (reduced) { fadeEls.forEach(el => el.classList.add('visible')); return; }
-      const obs = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) { entry.target.classList.add('visible'); obs.unobserve(entry.target); }
-        });
-      }, { threshold: 0.12 });
-      fadeEls.forEach(el => obs.observe(el));
-      return () => obs.disconnect();
-    };
-    const t = setTimeout(setup, 50);
-    return () => clearTimeout(t);
-  }, []);
+          <div class="community">
+            <p class="section-kicker">Community initiatives</p>
+            <article>
+              <h3>Escuela Latinoamericana de Inteligencia Artificial</h3>
+              <p>A free weekly space for conversations about AI, machine learning, and data science across Latin America.</p>
+              <a href="https://www.linkedin.com/company/escuelaia" target="_blank" rel="noopener noreferrer">LinkedIn <span aria-hidden="true">↗</span></a>
+            </article>
+            <article>
+              <h3>Engega’t — Gamified Job Insertion</h3>
+              <p>Gamification design for a municipal job-insertion program for young people in Catalonia.</p>
+              <a href="https://www.url.edu/ca/sala-de-premsa/noticies/institucional/2016/lajuntament-de-santa-perpetua-i-la-salle-url-apliquen-la-gamificacio-un-programa-dorientacio-laboral-joves-de-16-29-anys" target="_blank" rel="noopener noreferrer">Press <span aria-hidden="true">↗</span></a>
+            </article>
+            <article>
+              <h3>Locademia de Teología</h3>
+              <p>A Latin American space for open and alternative theological conversation.</p>
+              <a href="https://locademiadeteologia.wordpress.com/" target="_blank" rel="noopener noreferrer">Visit <span aria-hidden="true">↗</span></a>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
 
-  return (
-    <>
-      <AlifeCanvas />
-      <Nav active={active} onNav={onNav} />
-      <main id="main">
-        <Hero />
-        <About />
-        <Research />
-        <Work />
-        <Teaching />
-        <Pedagogy />
-        <Projects />
-        <Contact />
-        <SiteFooter />
-      </main>
-    </>
-  );
-};
+    <section id="contact" class="contact section-shell">
+      <p class="section-kicker">05 / Contact</p>
+      <div class="contact-grid">
+        <div>
+          <h2>Get in touch</h2>
+          <p>If you are working on learning analytics, education, technology that serves people, or a problem that crosses disciplines, I would be glad to hear from you.</p>
+        </div>
+        <div class="contact-links">
+          <a href="mailto:gnulion@gmail.com"><span>Email</span><strong>gnulion@gmail.com</strong><i aria-hidden="true">↗</i></a>
+          <a href="https://www.linkedin.com/in/arielortiz" target="_blank" rel="noopener noreferrer"><span>LinkedIn</span><strong>in/arielortiz</strong><i aria-hidden="true">↗</i></a>
+          <a href="https://orcid.org/0000-0003-1522-2362" target="_blank" rel="noopener noreferrer"><span>ORCID</span><strong>0000-0003-1522-2362</strong><i aria-hidden="true">↗</i></a>
+        </div>
+      </div>
+      <footer class="site-footer">
+        <p>Barcelona · Open to in-person and remote collaboration</p>
+        <p>Built with curiosity and a few living algorithms.</p>
+      </footer>
+    </section>
+  </main>
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-
-  </script>
+  <script type="module" src="js/alife/loader.js"></script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>

@@ -1,68 +1,81 @@
-/**
- * Main interactions
- * - Scroll-triggered fade-ins
- * - Publication expand/collapse
- * - Canvas opacity fading on scroll
- */
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-// --- Scroll fade-in ---
-const fadeEls = document.querySelectorAll('.fade-in');
+// Mobile navigation
+const navToggle = document.querySelector('.nav-toggle');
+const nav = document.querySelector('.nav');
+const navLinks = [...document.querySelectorAll('.nav-link')];
 
-if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-  const fadeObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-        fadeObserver.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.12 });
-
-  fadeEls.forEach(el => fadeObserver.observe(el));
-} else {
-  fadeEls.forEach(el => el.classList.add('visible'));
+function setNav(open) {
+  if (!navToggle || !nav) return;
+  navToggle.setAttribute('aria-expanded', String(open));
+  nav.classList.toggle('is-open', open);
+  document.body.classList.toggle('nav-open', open);
 }
 
-// --- Publication expand/collapse ---
-document.querySelectorAll('.pub-header').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const details = btn.nextElementSibling;
-    const expanded = btn.getAttribute('aria-expanded') === 'true';
-    btn.setAttribute('aria-expanded', String(!expanded));
+navToggle?.addEventListener('click', () => {
+  setNav(navToggle.getAttribute('aria-expanded') !== 'true');
+});
+
+navLinks.forEach((link) => {
+  link.addEventListener('click', () => setNav(false));
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && navToggle?.getAttribute('aria-expanded') === 'true') {
+    setNav(false);
+    navToggle.focus();
+  }
+});
+
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 820) setNav(false);
+});
+
+// Publication disclosure rows
+document.querySelectorAll('.pub-header').forEach((button) => {
+  button.addEventListener('click', () => {
+    const detailsId = button.getAttribute('aria-controls');
+    const details = detailsId ? document.getElementById(detailsId) : null;
+    if (!details) return;
+
+    const expanded = button.getAttribute('aria-expanded') === 'true';
+    button.setAttribute('aria-expanded', String(!expanded));
     details.hidden = expanded;
   });
 });
 
-// --- Canvas opacity on scroll ---
-const alifeBg = document.getElementById('alife-bg');
-if (alifeBg && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-  const heroHeight = window.innerHeight;
-  let ticking = false;
+// Keep the current section visible in navigation.
+const trackedSections = navLinks
+  .map((link) => document.querySelector(link.getAttribute('href')))
+  .filter(Boolean);
 
-  window.addEventListener('scroll', () => {
-    if (!ticking) {
-      requestAnimationFrame(() => {
-        const scrollY = window.scrollY;
-        const t = Math.min(scrollY / heroHeight, 1);
-        // Lerp from 0.18 to 0.04
-        alifeBg.style.opacity = String(0.18 - t * 0.14);
-        ticking = false;
-      });
-      ticking = true;
-    }
-  }, { passive: true });
+if ('IntersectionObserver' in window && trackedSections.length) {
+  const sectionObserver = new IntersectionObserver((entries) => {
+    const visible = entries
+      .filter((entry) => entry.isIntersecting)
+      .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+    if (!visible) return;
+    navLinks.forEach((link) => {
+      const active = link.getAttribute('href') === `#${visible.target.id}`;
+      if (active) link.setAttribute('aria-current', 'true');
+      else link.removeAttribute('aria-current');
+    });
+  }, {
+    rootMargin: '-20% 0px -65% 0px',
+    threshold: [0, 0.15, 0.4],
+  });
+
+  trackedSections.forEach((section) => sectionObserver.observe(section));
 }
 
-// --- Smooth scroll for nav (fallback for browsers without CSS scroll-behavior) ---
-document.querySelectorAll('.nav-link').forEach(link => {
-  link.addEventListener('click', (e) => {
-    const href = link.getAttribute('href');
-    if (href && href.startsWith('#')) {
-      const target = document.querySelector(href);
-      if (target) {
-        e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }
-  });
-});
+// Fade the living field as the hero leaves the viewport.
+const alifeBg = document.getElementById('alife-bg');
+const hero = document.getElementById('hero');
+
+if (alifeBg && hero && !reducedMotion.matches) {
+  window.addEventListener('scroll', () => {
+    const progress = Math.min(window.scrollY / Math.max(hero.offsetHeight * 0.8, 1), 1);
+    alifeBg.style.opacity = String(0.7 - progress * 0.45);
+  }, { passive: true });
+}

@@ -150,8 +150,8 @@ function onPointer(e) {
 }
 
 function resize() {
-  w = window.innerWidth;
-  h = window.innerHeight;
+  w = Math.max(canvas.clientWidth, 1);
+  h = Math.max(canvas.clientHeight, 1);
   canvas.width = w * dpr;
   canvas.height = h * dpr;
 }

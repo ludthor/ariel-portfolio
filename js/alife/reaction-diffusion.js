@@ -12,12 +12,12 @@ const PRESETS = [
   { f: 0.046, k: 0.063, name: 'mixed' },       // spots-to-stripes transition
 ];
 
-const GRID = 256;            // simulation width — high enough for detail, light enough to run
+const GRID = 192;            // enough detail for the contained hero field
 const DA   = 1.0;            // diffusion rate of A
 const DB   = 0.5;            // diffusion rate of B
 const DT   = 1.0;            // timestep
-const STEPS = 8;             // simulation steps per frame
-const WARMUP = 3000;         // pre-run steps so patterns exist on first paint
+const STEPS = 3;             // enough movement without monopolising the main thread
+const WARMUP = 1200;         // reveal a developed pattern on first paint
 const CURSOR_R = 24;         // cursor influence radius (grid units)
 
 let canvas, ctx, imgData;
@@ -158,8 +158,8 @@ function onPointerLeave() {
 
 /* ---- Resize ---- */
 function onResize() {
-  w = window.innerWidth;
-  h = window.innerHeight;
+  w = Math.max(canvas.clientWidth, 1);
+  h = Math.max(canvas.clientHeight, 1);
   createGrids();
 }
 
@@ -167,8 +167,8 @@ function onResize() {
 export function init(c, context) {
   canvas = c;
   ctx = context;
-  w = window.innerWidth;
-  h = window.innerHeight;
+  w = Math.max(canvas.clientWidth, 1);
+  h = Math.max(canvas.clientHeight, 1);
 
   preset = PRESETS[Math.floor(Math.random() * PRESETS.length)];
 

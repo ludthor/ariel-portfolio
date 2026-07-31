@@ -199,8 +199,8 @@ function onPointerLeave() {
 }
 
 function onResize() {
-  w = window.innerWidth;
-  h = window.innerHeight;
+  w = Math.max(canvas.clientWidth, 1);
+  h = Math.max(canvas.clientHeight, 1);
   createGrid();
 }
 
@@ -208,8 +208,8 @@ export function init(c, context) {
   canvas = c;
   ctx = context;
   mouse = { gx: null, gy: null };
-  w = window.innerWidth;
-  h = window.innerHeight;
+  w = Math.max(canvas.clientWidth, 1);
+  h = Math.max(canvas.clientHeight, 1);
   lastStep = 0;
 
   canvas.style.imageRendering = 'pixelated';
