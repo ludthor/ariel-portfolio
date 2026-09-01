@@ -3,18 +3,40 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Generate localized pages
+        run: node scripts/build-locales.mjs
+      - name: Check generated pages are committed and current
+        run: |
+          git status --short -- es/index.html ca/index.html
+          test -z "$(git status --porcelain -- es/index.html ca/index.html)"
+      - name: Test internationalization
+        run: node --test tests/i18n.test.mjs
+
   deploy:
+    if: github.event_name == 'push'
+    needs: verify
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
