@@ -6,6 +6,13 @@ import { fileURLToPath } from 'node:url';
 
 const testDirectory = dirname(fileURLToPath(import.meta.url));
 const sourceDirectory = join(testDirectory, '..');
+const newestPublication = {
+  title: 'Lightweight Institutional Analytics: A Construct-Oriented Workflow for Course-Level LMS Indicators',
+  venue: 'LASI Spain 2026 · CEUR Workshop Proceedings',
+  authors: 'Ortiz-Beltrán, A. &amp; Hernández-Leo, D.',
+  paperUrl: 'https://ceur-ws.org/Vol-4235/paper7.pdf',
+  venueUrl: 'https://lasi26.snola.es/',
+};
 
 const expectations = {
   en: {
@@ -50,6 +57,18 @@ function publicationTitles(source) {
   return matches(source, /<span class="pub-title"(?: lang="(?:en|es)")?>(.*?)<\/span>/g).map((match) => match[1]);
 }
 
+function publicationControls(source) {
+  return matches(source, /aria-controls="(pub-\d+-details)"/g).map((match) => match[1]);
+}
+
+function publicationDetails(source) {
+  return matches(source, /<div id="(pub-\d+-details)" class="pub-details" hidden>/g).map((match) => match[1]);
+}
+
+function publicationIndexes(source) {
+  return matches(source, /<span class="pub-index">(\d{2})<\/span>/g).map((match) => match[1]);
+}
+
 function ids(source) {
   return matches(source, /\bid="([^"]+)"/g).map((match) => match[1]).sort();
 }
@@ -86,14 +105,36 @@ test('every page exposes the same three alternates and one current language', ()
 test('localized pages preserve document structure and publication records', () => {
   const englishIds = ids(pages.en);
   const englishTitles = publicationTitles(pages.en);
+  const expectedDetailIds = Array.from({ length: 11 }, (_, index) => `pub-${index + 1}-details`);
+  const expectedIndexes = Array.from({ length: 11 }, (_, index) => String(index + 1).padStart(2, '0'));
 
-  assert.equal(englishTitles.length, 10);
+  assert.equal(englishTitles.length, 11);
+  assert.equal(englishTitles[0], newestPublication.title);
+
+  for (const locale of ['en', 'es', 'ca']) {
+    assert.deepEqual(publicationControls(pages[locale]), expectedDetailIds, `${locale} changed disclosure controls`);
+    assert.deepEqual(publicationDetails(pages[locale]), expectedDetailIds, `${locale} changed disclosure details`);
+    assert.deepEqual(publicationIndexes(pages[locale]), expectedIndexes, `${locale} changed publication numbering`);
+  }
 
   for (const locale of ['es', 'ca']) {
     assert.deepEqual(ids(pages[locale]), englishIds, `${locale} changed document IDs`);
     assert.deepEqual(publicationTitles(pages[locale]), englishTitles, `${locale} changed publication titles`);
-    assert.equal(matches(pages[locale], /class="pub-title" lang="en"/g).length, 7);
+    assert.equal(matches(pages[locale], /class="pub-title" lang="en"/g).length, 8);
     assert.equal(matches(pages[locale], /class="pub-title" lang="es"/g).length, 3);
+  }
+});
+
+test('the newest publication has verified 2026 metadata and links in every locale', () => {
+  for (const [locale, page] of Object.entries(pages)) {
+    assert.ok(page.includes('<li class="pub" data-year="2026">'), `${locale} is missing the 2026 publication`);
+    assert.ok(page.includes(newestPublication.title), `${locale} is missing the new publication title`);
+    assert.ok(page.includes(newestPublication.venue), `${locale} is missing the new publication venue`);
+    assert.ok(page.includes(newestPublication.authors), `${locale} is missing the new publication authors`);
+    assert.ok(page.includes(`href="${newestPublication.paperUrl}"`), `${locale} is missing the paper link`);
+    assert.ok(page.includes(`href="${newestPublication.venueUrl}"`), `${locale} is missing the venue link`);
+    assert.ok(page.includes('aria-controls="pub-1-details"'), `${locale} is missing the disclosure control`);
+    assert.ok(page.includes('<div id="pub-1-details" class="pub-details" hidden>'), `${locale} is missing the disclosure content`);
   }
 });
 
@@ -105,7 +146,7 @@ test('the retired hero statement is absent from deployable pages', () => {
 
 test('localized pages use shared root assets', () => {
   for (const locale of ['es', 'ca']) {
-    assert.ok(pages[locale].includes('href="/css/style.css?v=i18n-20260901-5"'));
+    assert.ok(pages[locale].includes('href="/css/style.css?v=i18n-20260902-1"'));
     assert.ok(pages[locale].includes('src="/js/alife/loader.js?v=i18n-20260901-5"'));
     assert.ok(pages[locale].includes('src="/js/main.js?v=i18n-20260901-5"'));
   }

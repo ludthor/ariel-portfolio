@@ -7,6 +7,7 @@ const sourceDirectory = join(scriptDirectory, '..');
 const templatePath = join(sourceDirectory, 'index.html');
 
 const englishPublicationTitles = [
+  'Lightweight Institutional Analytics: A Construct-Oriented Workflow for Course-Level LMS Indicators',
   'The Interplay between Learning Design and Learning Analytics Indicators in Higher Education',
   'Exploring the Complex Analytics Interplay of LMS Design, Usage, Academic Outcomes, and Perceived Workload',
   'Institutional, Academic, and Learning Analytics: A Bibliometric Study',
@@ -352,7 +353,7 @@ async function build() {
       output = replaceRequired(output, from, to, locale);
     }
 
-    output = replaceRequired(output, 'href="css/style.css?v=i18n-20260901-5"', 'href="/css/style.css?v=i18n-20260901-5"', locale);
+    output = replaceRequired(output, 'href="css/style.css?v=i18n-20260902-1"', 'href="/css/style.css?v=i18n-20260902-1"', locale);
     output = replaceRequired(output, 'src="js/alife/loader.js?v=i18n-20260901-5"', 'src="/js/alife/loader.js?v=i18n-20260901-5"', locale);
     output = replaceRequired(output, 'src="js/main.js?v=i18n-20260901-5"', 'src="/js/main.js?v=i18n-20260901-5"', locale);
 

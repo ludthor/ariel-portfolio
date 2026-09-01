@@ -750,7 +750,7 @@ section[id] {
 }
 
 .pub-details {
-  padding: 0 0 1.5rem 68px;
+  padding: 0.75rem 0 1.5rem 68px;
 }
 
 .pub-details[hidden] {
@@ -765,6 +765,10 @@ section[id] {
 
 .pub-details .text-link {
   min-height: 36px;
+}
+
+.pub-details .text-link + .text-link {
+  margin-left: 1rem;
 }
 
 .about-grid {
