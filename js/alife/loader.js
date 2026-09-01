@@ -5,9 +5,9 @@
  */
 
 const sims = [
-  { load: () => import('./boids.js'), name: 'boids flocking' },
-  { load: () => import('./reaction-diffusion.js'), name: 'reaction-diffusion' },
-  { load: () => import('./cellular-automata.js'), name: 'game of life' },
+  { load: () => import('./boids.js'), labelKey: 'boids', fallbackName: 'boids flocking' },
+  { load: () => import('./reaction-diffusion.js'), labelKey: 'reactionDiffusion', fallbackName: 'reaction–diffusion' },
+  { load: () => import('./cellular-automata.js'), labelKey: 'gameOfLife', fallbackName: 'game of life' },
 ];
 
 let activeSim = null;
@@ -29,7 +29,11 @@ async function start() {
 
   // Show simulation label
   const label = document.getElementById('alife-label');
-  if (label) label.textContent = `running: ${sim.name}`;
+  if (label) {
+    const prefix = label.dataset.running || 'running:';
+    const name = label.dataset[sim.labelKey] || sim.fallbackName;
+    label.textContent = `${prefix} ${name}`;
+  }
 }
 
 start();
